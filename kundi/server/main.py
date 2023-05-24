@@ -22,6 +22,10 @@ Token = Annotated[str, oauth2_scheme]
 # TODO: dataclasses here
 
 
+class CreateSetPayload(BaseModel):
+    set_name: str
+
+
 class FirebaseUser(BaseModel):
     name: str
     user_id: str
@@ -164,6 +168,26 @@ async def parse_token(token: Annotated[str, oauth2_scheme]):
         return None
 
 
+# abit redundant, but this check for uuid duplicate
+def db_create_set(email: str, set_name: str):
+    try:
+        set_id = str(uuid.uuid4())
+        set_ref = db.collection("users").document(
+            email).collection("sets").document(set_id)
+        set_ref.set({'set_name': set_name})
+        return set_ref.get().to_dict()
+    except:
+        raise HTTPException(406)
+
+
+@ app.post("/v1/set")
+def create_set(user: Annotated[dict, Depends(parse_token)], set_payload: CreateSetPayload):
+    if user == None:
+        raise HTTPException(status_code=401)
+    result = db_create_set(user["email"], set_payload.set_name)
+    return result
+
+
 @ app.post("/v1/sets/{set_id}/cards")
 def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
     if user == None:
@@ -187,7 +211,7 @@ def update_card(user: Annotated[dict, Depends(parse_token)], set_id: str, cards:
     db_update_cards(user["email"], set_id, cards)
 
 
-@ app.put("/v1/sets/{set_id}/cards")
+@ app.delete("/v1/sets/{set_id}/cards")
 def delete_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
     if user == None:
         raise HTTPException(status_code=401)

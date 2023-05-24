@@ -8,7 +8,8 @@ Flask
   + fast to setup / build 
 FastAPI 
   + even faster than flask 
-  + extremely satisfying
+  + satisfying 
+
 Django 
   + well organized  
   + Battery included 
@@ -58,4 +59,16 @@ https://firebase.google.com/docs/auth/web/password-auth
 login firebase -> return a user object has a token -> send that token to FastAPI to auth 
 
 - Firestore
-document -> collection -> document
+document -> collection -> document 
+
+# Design decisions 
+Review sys: https://en.wikipedia.org/wiki/Leitner_system, overkill :) 
+-> use a 5 box, simpler method 
+5 box: 10m, 1day, 3d, 5d, 7d  
+correct -> move right   
+wrong -> move left  
+wrong thrice -> return box1 
+
+Firebase because sets, cards are simple  
+
+
