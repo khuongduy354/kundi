@@ -98,12 +98,15 @@ def signup_user(payload: UserAuthPayload):
 
 
 def db_get_cards(email: str, set: str):
-    docs = db.collection("users").document(
-        email).collection("sets").document(set).collection("cards").stream()
-    result: list[Card] = []
-    for doc in docs:
-        result.append(doc.to_dict())
-    return result
+    try:
+        docs = db.collection("users").document(
+            email).collection("sets").document(set).collection("cards").stream()
+        result: list[Card] = []
+        for doc in docs:
+            result.append(doc.to_dict())
+        return result
+    except:
+        HTTPException(status_code=406)
 
 
 def db_update_cards(email: str, set: str, cards: list[Card]):
@@ -143,16 +146,12 @@ def db_delete_cards(email: str, set: str, cards: list[Card]):
             card_ref = db.collection("users").document(
 
                 email).collection("sets").document(set).collection("cards").document(card.card_id)
-
-            batch.delete(card_ref)
+            snapshot = card_ref.get()
+            if snapshot.exists:
+                batch.delete(card_ref)
         batch.commit()
     except:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
-
-
-@ app.get("/v1/sets/{set_id}/cards")
-def get_cards(set_id: str):
-    pass
 
 
 async def parse_token(token: Annotated[str, oauth2_scheme]):
@@ -166,13 +165,19 @@ async def parse_token(token: Annotated[str, oauth2_scheme]):
 
 
 @ app.post("/v1/sets/{set_id}/cards")
+def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
+    if user == None:
+        raise HTTPException(status_code=401)
+    return db_get_cards(user["email"], set_id)
+
+
+@ app.post("/v1/sets/{set_id}/cards")
 def create_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
     if user == None:
         raise HTTPException(status_code=401)
     for card in cards:
         card.card_id = str(uuid.uuid4())
     db_create_cards(user["email"], set_id, cards)
-    return
 
 
 @ app.put("/v1/sets/{set_id}/cards")
@@ -180,9 +185,10 @@ def update_card(user: Annotated[dict, Depends(parse_token)], set_id: str, cards:
     if user == None:
         raise HTTPException(status_code=401)
     db_update_cards(user["email"], set_id, cards)
-    pass
 
 
-@ app.delete("/v1/cards/{card_id}")
-def delete_card(card_id: int):
-    pass
+@ app.put("/v1/sets/{set_id}/cards")
+def delete_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
+    if user == None:
+        raise HTTPException(status_code=401)
+    db_delete_cards(user["email"], set_id, cards)
