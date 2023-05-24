@@ -1,4 +1,4 @@
-from kundi.helpers import parse_export, parse_import
+from kundi.helpers.parse import parse_export, parse_import
 
 sample_input = "word1 def1\nword2 def2\nword3 def3"
 listresult = parse_import(sample_input, " ", "\n")

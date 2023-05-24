@@ -41,15 +41,29 @@ Dependency can has its own dependencies -> chain pretty much like Middlewares
 https://stackoverflow.com/questions/66632841/fastapi-dependency-vs-middleware#:~:text=Dependency%3A%20you%20use%20it%20to,the%20request%20to%20your%20logic. 
 -> few similar use cases
 -> use D.I if handle request before route handler 
+-> middlewares apply to all endpoints, which is VERY INCONVENIENT
 
-- Setup with firebase 
-https://pythonalgos.com/python-firebase-authentication-integration-with-fastapi/ 
-pyrebase 
+- package
+never runs a nested module, cuz weird behaviors :) py tests/test_db.py for example
 
 - PIP SUCKS 
 firebase-admin take hours to install, 
 but after i run pip3 install --upgrade pip
 it install like instantly
 
+- Firebase docs is all over the place
+https://firebase.google.com/docs/auth/web/password-auth
+<!-- -> this for example, it returns a user, but idk what that user Object contains :) -->
+<!-- -> dont know whether that has a token for me to verify in my FastAPI --> 
+login firebase -> return a user object has a token -> send that token to FastAPI to auth 
+
+- Firestore
+document -> collection -> document
+
 # Credentials 
 firebase appsecret = kundi 
+
+# Todo 
+learn how Depends work
+advanced security in fast api  
+firebase testing (snapshot or something) after operations 
