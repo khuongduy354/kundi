@@ -59,11 +59,3 @@ login firebase -> return a user object has a token -> send that token to FastAPI
 
 - Firestore
 document -> collection -> document
-
-# Credentials 
-firebase appsecret = kundi 
-
-# Todo 
-learn how Depends work
-advanced security in fast api  
-firebase testing (snapshot or something) after operations 

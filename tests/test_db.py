@@ -1,10 +1,10 @@
-from kundi.server.main import Card, db_delete_cards, db_get_card, db_create_cards
+from kundi.server.main import Card, db_delete_cards, db_get_cards, db_create_cards
 
 sample_email = "E8KaeUwdHVzsNkpdj3WY"
 
 
 def test_get_cards():
-    result = db_get_card(sample_email, "1")
+    result = db_get_cards(sample_email, "1")
     expected = [{'word': ''}]
     assert result == expected
 

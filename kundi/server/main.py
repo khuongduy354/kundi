@@ -1,8 +1,9 @@
 from typing import Callable, Union, Annotated, List
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request, status
+import uuid
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, parse
 import firebase_admin
 from firebase_admin import auth, firestore
 from firebase_admin import credentials
@@ -18,11 +19,25 @@ batch = db.batch()
 
 Token = Annotated[str, oauth2_scheme]
 
+# TODO: dataclasses here
+
+
+class FirebaseUser(BaseModel):
+    name: str
+    user_id: str
+    email: str
+
 
 class Card(BaseModel):
-    card_id: int
+    card_id: str
     word: str
     definition: str
+
+
+# class CreateCardsPayload(BaseModel):
+#     card_id: int
+#     word: str
+#     definition: str
 
 
 class UserAuthPayload(BaseModel):
@@ -65,7 +80,7 @@ def read_root():
 def signup_user(payload: UserAuthPayload):
     try:
         user = auth.create_user(email=payload.email, password=payload.password,
-                                display_name=payload.display_name, verified=True)
+                                display_name=payload.display_name, email_verified=True)
         return user
     except:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
@@ -82,25 +97,44 @@ def signup_user(payload: UserAuthPayload):
 # Cards
 
 
-def db_get_card(email: str, set: str):
+def db_get_cards(email: str, set: str):
     docs = db.collection("users").document(
         email).collection("sets").document(set).collection("cards").stream()
-    result = []
+    result: list[Card] = []
     for doc in docs:
         result.append(doc.to_dict())
     return result
 
 
+def db_update_cards(email: str, set: str, cards: list[Card]):
+    try:
+        for card in cards:
+            card_ref = db.collection("users").document(
+
+                email).collection("sets").document(set).collection("cards").document(card.card_id)
+            snapshot = card_ref.get()
+            if snapshot.exists:
+                new_card = {card.card_id: {"word": card.word,
+                                           "definition": card.definition}}
+                batch.set(card_ref, new_card)
+        batch.commit()
+    except:
+        raise HTTPException(status_code=406)
+
+
 def db_create_cards(email: str, set: str, cards: list[Card]):
-    for card in cards:
-        card_ref = db.collection("users").document(
+    try:
+        for card in cards:
+            card_ref = db.collection("users").document(
 
-            email).collection("sets").document(set).collection("cards").document(str(card.card_id))
+                email).collection("sets").document(set).collection("cards").document(card.card_id)
 
-        new_card = {str(card.card_id): {"word": card.word,
-                                        "definition": card.definition}}
-        batch.set(card_ref, new_card)
-    batch.commit()
+            new_card = {card.card_id: {"word": card.word,
+                                       "definition": card.definition}}
+            batch.set(card_ref, new_card)
+        batch.commit()
+    except:
+        raise HTTPException(status_code=406)
 
 
 def db_delete_cards(email: str, set: str, cards: list[Card]):
@@ -108,38 +142,44 @@ def db_delete_cards(email: str, set: str, cards: list[Card]):
         for card in cards:
             card_ref = db.collection("users").document(
 
-                email).collection("sets").document(set).collection("cards").document(str(card.card_id))
+                email).collection("sets").document(set).collection("cards").document(card.card_id)
 
             batch.delete(card_ref)
         batch.commit()
     except:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
-# same as create cards, differences lie on the handler
-# def db_update_cards(email: str, set: str, cards: list[Card]):
-#     for card in cards:
-#         doc_ref = db.collection("users").document(
-#
-#             email).collection("sets").document(set).collection("cards").document(str(card.card_id))
-#         new_card = {str(card.card_id): {"word": card.word,
-#                                         "definition": card.definition}}
-#
-#         batch.doc_ref.set(doc_ref, new_card)
-#     batch.commit
 
 
-@ app.get("/v1/cards/{card_id}")
-def get_card(card_id: str):
+@ app.get("/v1/sets/{set_id}/cards")
+def get_cards(set_id: str):
     pass
 
 
-@ app.post("/v1/cards/")
-def create_cards(token: Token, cards: List[Card]):
+async def parse_token(token: Annotated[str, oauth2_scheme]):
+    try:
+        decoded_jwt: dict = auth.verify_id_token(
+            id_token=token, check_revoked=True)
 
-    pass
+        return decoded_jwt
+    except:
+        return None
 
 
-@ app.put("/v1/cards/{card_id}")
-def update_card(card_id: int, new_card: Card):
+@ app.post("/v1/sets/{set_id}/cards")
+def create_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
+    if user == None:
+        raise HTTPException(status_code=401)
+    for card in cards:
+        card.card_id = str(uuid.uuid4())
+    db_create_cards(user["email"], set_id, cards)
+    return
+
+
+@ app.put("/v1/sets/{set_id}/cards")
+def update_card(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
+    if user == None:
+        raise HTTPException(status_code=401)
+    db_update_cards(user["email"], set_id, cards)
     pass
 
 
