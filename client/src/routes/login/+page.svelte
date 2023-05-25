@@ -20,7 +20,7 @@
   }
 </script>
 
-<main>
+<main>  
   <h1>Login</h1>
   <form>
     <label>

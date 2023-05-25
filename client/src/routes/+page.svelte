@@ -1,7 +1,7 @@
 <script>
-import Edit from "./statics/edit.svelte"
+import Edit from "./statics/edit.svelte" 
 import Slideshow from "./statics/slideshow.svelte"
-let showSlide = true 
+let showSlide = true  
 </script>
 
 <svelte:head> 
@@ -14,7 +14,7 @@ let showSlide = true
 {/if} 
 
 {#if !showSlide}
-<Edit bind:showSlide/>
+<Edit bind:showSlide />
 {/if}
  
 

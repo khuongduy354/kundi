@@ -3,6 +3,11 @@
 <!-- FlashcardSlideshow.svelte -->
 
 <script>
+import {UserState} from "../../store.js"
+  let user = null
+  UserState.subscribe((value) =>{
+user = value 
+  })
 export let showSlide
   let currentIndex = 0;
 	  let frontHide = false;
@@ -39,7 +44,9 @@ export let showSlide
 </script>
 
 <main>
-	  <h1 class="title">{title}</h1>
+	  <h1 class="KundiFl">Kundi Flashcard</h1>
+{#if user != null}  
+    <p>{title}</p>
   <div class="flashcard-container">
     <div class="flashcard"  on:click="{toggleFlip}">
       <div class="front" class:hide="{frontHide}">
@@ -83,14 +90,14 @@ export let showSlide
 	  <div class="add-button">
     <button on:click="{()=>{showSlide=false}}">Add or remove terms</button>
   </div>
+{/if }
 </main>
 
-<style>
+<style> 
   main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     height: 100vh;
     background-color: #f0f2f5;
     padding: 2rem;

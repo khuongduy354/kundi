@@ -2,7 +2,12 @@
 
 <script>
   const decks = ['Deck 1', 'Deck 2', 'Deck 3', 'Deck 4', 'Deck 5'];
-  function addDeck(){}
+  function addDeck(){}  
+import {UserState} from "../../store.js"
+  let user = null
+  UserState.subscribe((value) =>{
+user = value 
+  })
 </script>
 
 <style>
@@ -66,7 +71,8 @@
     cursor: pointer;
   }
 </style>
-<div> 
+<div>  
+{#if user!= null} 
 <div class="add-button">
 <div class="container">
     <button on:click="{addDeck}">Add Deck</button>
@@ -77,4 +83,5 @@
     </button>
   {/each}
 </div>
+{/if}
 </div>
