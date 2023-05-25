@@ -13,7 +13,7 @@
 			<li aria-current={$page.url.pathname === '/' ? 'page' : undefined}>
 				<a href="/">Home</a>
 			</li>
-			<li aria-current={$page.url.pathname === '/sets' ? 'page' : undefined}>
+			<li aria-current={$page.url.pathname.startsWith('/sets') ? 'page' : undefined}>
 				<a href="/sets">Sets</a>
 			</li>
 			<li aria-current={$page.url.pathname.startsWith('/login') ? 'page' : undefined}>
@@ -31,9 +31,6 @@
 		</a>
 	</div> 
 
-   {#if $navigating} 
-   navigating to {$navigating.to.url.pathname}
-   {/if}
 
 </header>
 

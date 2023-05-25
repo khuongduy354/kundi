@@ -2,6 +2,7 @@
 
 <script>
   const decks = ['Deck 1', 'Deck 2', 'Deck 3', 'Deck 4', 'Deck 5'];
+  function addDeck(){}
 </script>
 
 <style>
@@ -68,7 +69,7 @@
 <div> 
 <div class="add-button">
 <div class="container">
-    <button on:click="{addFlashcard}">Add Deck</button>
+    <button on:click="{addDeck}">Add Deck</button>
   </div>
   {#each decks as deck}
     <button class="deck">
