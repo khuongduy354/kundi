@@ -82,6 +82,7 @@ def read_root():
 
 @app.post("/v1/signup")
 def signup_user(payload: UserAuthPayload):
+    print(payload)
     try:
         user = auth.create_user(email=payload.email, password=payload.password,
                                 display_name=payload.display_name, email_verified=True)

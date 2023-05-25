@@ -31,7 +31,7 @@
 			</li> 
       {/if}
       {#if loggedin}
-			<li on:click="{()=>{unsubscribe ;UserState.update((state)=>{return null})}}">
+			<li on:click="{()=>{UserState.update((state)=>{return null})}}">
 				<a >logout</a>
 			</li> 
       {/if}
@@ -51,7 +51,7 @@
 <style>
 	header {
 		display: flex;
-		justify-content: space-between;
+		justify-content: space-around;
 	}
 .username{
 }
