@@ -5,6 +5,7 @@
 	import Popup from '../statics/popup.svelte';
 	import { APIUrl, UserState } from '../../store.js';
 
+	export let set_name;
 	export let mode;
 	export let set_id;
 	let showPopup = false;
@@ -79,6 +80,7 @@
 				<button
 					on:click={() => {
 						set_id = deck.set_id;
+						set_name = deck.set_name;
 						mode = 'Home';
 					}}
 					class="deck"

@@ -21,7 +21,7 @@
 	function addFlashcard() {
 		// Implement your logic to add a new flashcard
 	}
-	let flashcards = [
+	export let flashcards = [
 		{ card_id: 'Term 1', word: 'word', definition: 'Definition 1' },
 		{ card_id: 'asdfTerm 1', word: 'dasfafword', definition: 'Dasdfefinition 1' },
 		{ card_id: 'Teradfm 1', word: 'wordasdf', definition: 'Definitadsfion 1' }

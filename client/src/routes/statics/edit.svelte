@@ -1,5 +1,8 @@
 <script>
 	export let mode;
+	export let set_name = '';
+	export let flashcards = [{ card_id: 'Term 1', word: 'word', definition: 'Definition 1' }];
+
 	let deckTitle = '';
 	let deckDescription = '';
 	let terms = [];
@@ -13,15 +16,15 @@
 
 <main>
 	<header>
-		<h1>Edit Deck</h1>
-		<div class="deck-info">
+		<h1>Edit Deck {set_name}</h1>
+		<!-- <div class="deck-info">
 			<input type="text" bind:value={deckTitle} placeholder="Deck Title" class="input-field" />
 			<textarea
 				bind:value={deckDescription}
 				placeholder="Deck Description"
 				class="textarea-field"
 			/>
-		</div>
+		</div> -->
 	</header>
 
 	<!--   <div class="card-columns">
@@ -48,12 +51,24 @@
 		<span />
 		<button class="button">Export</button>
 	</div>
-
+	{#each flashcards as flashcard}
+		<div class="form-row">
+			<input type="text" placeholder="Term" class="input-field" value={flashcard.word} />
+			<input
+				type="text"
+				placeholder="Definition"
+				class="input-field"
+				value={flashcard.definition}
+			/>
+			<button class="button">Delete Row</button>
+		</div>
+	{/each}
 	<form on:submit|preventDefault={handleSubmit}>
 		<div class="form-row">
 			<input type="text" placeholder="Term" class="input-field" />
 			<input type="text" placeholder="Definition" class="input-field" />
 			<button class="button">Add Row</button>
+			<button class="button">Delete Row</button>
 		</div>
 		<button class="button">Submit</button>
 	</form>
