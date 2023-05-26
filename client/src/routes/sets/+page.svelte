@@ -1,18 +1,22 @@
 <!-- App.svelte -->
 
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, afterUpdate } from 'svelte';
+	import Popup from '../statics/popup.svelte';
 	import { APIUrl, UserState } from '../../store.js';
 
 	export let mode;
 	export let set_id;
+	let showPopup = false;
 
 	let decks = [{ set_name: 'deck1', set_id: 'asdasd' }];
-	function addDeck() {}
 	let user = null;
 	UserState.subscribe((value) => (user = value));
 
-	onMount(fetchDecks);
+	onMount(() => {
+		fetchDecks();
+	});
+
 	async function fetchDecks() {
 		if (user == null) {
 			return;
@@ -29,13 +33,47 @@
 			alert('Cant make request');
 		}
 	}
+
+	async function addDeck(event) {
+		let set_name = event.detail;
+		if (user == null) {
+			return;
+		}
+		const queryParams = {
+			token: user.idToken
+		};
+		const queryString = new URLSearchParams(queryParams).toString();
+		let url = APIUrl + '/v1/set' + '?' + queryString;
+		let body = JSON.stringify({ set_name });
+		let res = await fetch(url, {
+			method: 'POST',
+			body,
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (res.ok) {
+			let _set = await res.json();
+			decks.push(_set);
+		} else {
+			alert('Cant make request');
+		}
+	}
+	onMount(() => {});
 </script>
 
 <div>
+	{#if showPopup}
+		<Popup on:accept={addDeck} bind:showPopup />
+	{/if}
 	{#if user != null}
 		<div class="add-button">
 			<div class="container">
-				<button on:click={addDeck}>Add Deck</button>
+				<button
+					on:click={() => {
+						showPopup = true;
+					}}>Add Deck</button
+				>
 			</div>
 			{#each decks as deck}
 				<button
