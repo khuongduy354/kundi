@@ -1,14 +1,15 @@
 <script>
 	import Header from './Header.svelte';
+	import Home from './+page.svelte';
+	let mode = 'Home';
 </script>
 
 <div class="app">
-	<Header />
+	<Header bind:mode />
 
 	<main>
-		<slot />
+		<Home bind:mode />
 	</main>
-
 </div>
 
 <style>

@@ -11,5 +11,5 @@ sign_in:
 	curl --request POST \
 	  --url 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$(API_KEY)' \
 	  --header 'Content-Type: application/json' \
-	  --data @request.json >> output.txt
+	  --data @request.json > output.txt
 	rm request.json

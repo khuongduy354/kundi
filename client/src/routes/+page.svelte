@@ -1,21 +1,26 @@
 <script>
-import Edit from "./statics/edit.svelte" 
-import Slideshow from "./statics/slideshow.svelte"
-let showSlide = true  
+	import Edit from './statics/edit.svelte';
+	import Slideshow from './statics/slideshow.svelte';
+	import Login from './login/+page.svelte';
+	import Sets from './sets/+page.svelte';
+	export var mode = 'Home';
 </script>
 
-<svelte:head> 
+<svelte:head>
 	<title>Home</title>
 	<meta name="description" content="Svelte demo app" />
-</svelte:head> 
+</svelte:head>
 
-{#if showSlide}
-<Slideshow bind:showSlide/>
-{/if} 
-
-{#if !showSlide}
-<Edit bind:showSlide />
+{#if mode == 'Slideshow' || mode == 'Home'}
+	<Slideshow bind:mode />
 {/if}
- 
 
-
+{#if mode == 'Edit'}
+	<Edit bind:mode />
+{/if}
+{#if mode == 'Login'}
+	<Login />
+{/if}
+{#if mode == 'Sets'}
+	<Sets />
+{/if}

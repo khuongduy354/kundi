@@ -1,11 +1,14 @@
-<script> 
+<script>
 	import { page } from '$app/stores';
-  import {navigating} from '$app/stores';
+	import { navigating } from '$app/stores';
 	import github from '$lib/images/github.svg';
-  import {UserState} from "../store.js" 
-  let user = null  
-  $:loggedin = user != null 
-  let unsubscribe = UserState.subscribe(value => {user = value})
+	import { UserState } from '../store.js';
+	export var mode;
+	let user = null;
+	$: loggedin = user != null;
+	let unsubscribe = UserState.subscribe((value) => {
+		user = value;
+	});
 </script>
 
 <header>
@@ -14,27 +17,45 @@
 			<path d="M0,0 L1,2 C1.5,3 1.5,3 2,3 L2,0 Z" />
 		</svg>
 		<ul>
-    <li>
-		<a class="github" href="https://github.com/sveltejs/kit">
-			<img src={github} alt="GitHub" />
-		</a>
-    </li>
+			<li>
+				<a class="github" href="https://github.com/sveltejs/kit">
+					<img src={github} alt="GitHub" />
+				</a>
+			</li>
 			<li aria-current={$page.url.pathname === '/' ? 'page' : undefined}>
-				<a href="/">Home</a>
+				<a
+					on:click={() => {
+						mode = 'Home';
+					}}>Home</a
+				>
 			</li>
-			<li aria-current={$page.url.pathname.startsWith('/sets') ? 'page' : undefined}>
-				<a href="/sets">Sets</a>
+			<li>
+				<a
+					on:click={() => {
+						mode = 'Sets';
+					}}>Sets</a
+				>
 			</li>
-      {#if !loggedin}
-			<li aria-current={$page.url.pathname.startsWith('/login') ? 'page' : undefined}>
-				<a href="/login">Login</a>
-			</li> 
-      {/if}
-      {#if loggedin}
-			<li on:click="{()=>{UserState.update((state)=>{return null})}}">
-				<a >logout</a>
-			</li> 
-      {/if}
+			{#if !loggedin}
+				<li aria-current={$page.url.pathname.startsWith('/login') ? 'page' : undefined}>
+					<a
+						on:click={() => {
+							mode = 'Login';
+						}}>Login</a
+					>
+				</li>
+			{/if}
+			{#if loggedin}
+				<li
+					on:click={() => {
+						UserState.update((state) => {
+							return null;
+						});
+					}}
+				>
+					<a>logout</a>
+				</li>
+			{/if}
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
 			<path d="M0,0 L0,3 C0.5,3 0.5,3 1,2 L2,0 Z" />
@@ -42,10 +63,8 @@
 	</nav>
 
 	<div class="corner">
-				<p class="username">{user!= null ? user.displayName:""}</p>
-	</div> 
-
-
+		<p class="username">{user != null ? user.displayName : ''}</p>
+	</div>
 </header>
 
 <style>
@@ -53,8 +72,8 @@
 		display: flex;
 		justify-content: space-around;
 	}
-.username{
-}
+	.username {
+	}
 
 	.corner {
 		width: 3em;

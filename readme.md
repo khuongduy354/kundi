@@ -61,6 +61,14 @@ login firebase -> return a user object has a token -> send that token to FastAPI
 - Firestore
 document -> collection -> document 
 
+ 
+- typing 
+request has basemodel for typing 
+same for respones  
+usually response can return basemodel or dict 
+these can be converted back and forth  https://fastapi.tiangolo.com/tutorial/extra-models/
+having typing is extremely beneficial in coding and auto docs
+
 # Design decisions 
 Review sys: https://en.wikipedia.org/wiki/Leitner_system, overkill :) 
 -> use a 5 box, simpler method 
