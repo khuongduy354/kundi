@@ -77,6 +77,11 @@ app.add_middleware(
 def read_root():
     return {"Hello": "World"}
 
+
+# @app.post("/test_token")
+# def test_token(token: Token = Depends(oauth2_scheme)):
+#     return token
+
 # Auth
 
 
@@ -111,7 +116,7 @@ def db_get_cards(email: str, set: str):
             result.append(doc.to_dict())
         return result
     except:
-        HTTPException(status_code=406)
+        raise HTTPException(status_code=406)
 
 
 def db_update_cards(email: str, set: str, cards: list[Card]):
@@ -169,28 +174,58 @@ async def parse_token(token: Annotated[str, oauth2_scheme]):
         return None
 
 
+class SetResponse(BaseModel):
+    set_name: str
+    set_id: str
+
 # abit redundant, but this check for uuid duplicate
+
+
 def db_create_set(email: str, set_name: str):
     try:
         set_id = str(uuid.uuid4())
         set_ref = db.collection("users").document(
             email).collection("sets").document(set_id)
         set_ref.set({'set_name': set_name})
-        return set_ref.get().to_dict()
+        result = set_ref.get().to_dict()
+        result["set_id"] = set_id
+        return SetResponse(**result)
     except:
         raise HTTPException(406)
 
 
+# ROUTE HANDLERS
+
+
+def db_get_all_sets(email: str):
+    try:
+        snapshot = db.collection("users").document(
+            email).collection("sets").stream()
+        result = []
+        for doc in snapshot:
+            deck = doc.to_dict()
+            deck["set_id"] = doc.id
+            result.append(SetResponse(**deck))
+        return result
+    except:
+        raise HTTPException(406)
+
+
+@app.get("/v1/sets")
+async def get_all_sets(user: Annotated[dict, Depends(parse_token)]) -> List[SetResponse]:
+    return db_get_all_sets(user["email"])
+
+
 @ app.post("/v1/set")
-def create_set(user: Annotated[dict, Depends(parse_token)], set_payload: CreateSetPayload):
+def create_set(user: Annotated[dict, Depends(parse_token)], set_payload: CreateSetPayload) -> SetResponse:
     if user == None:
         raise HTTPException(status_code=401)
     result = db_create_set(user["email"], set_payload.set_name)
     return result
 
 
-@ app.post("/v1/sets/{set_id}/cards")
-def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
+@ app.get("/v1/sets/{set_id}/cards")
+def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str) -> List[Card]:
     if user == None:
         raise HTTPException(status_code=401)
     return db_get_cards(user["email"], set_id)
