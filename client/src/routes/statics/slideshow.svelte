@@ -5,13 +5,16 @@
 <script>
 	import { onMount } from 'svelte';
 	import { UserState, APIUrl } from '../../store.js';
+	export let mode;
+	export let set_id = '';
+
 	let user = null;
 	onMount(fetchCards);
 
 	UserState.subscribe((value) => {
 		user = value;
 	});
-	export let mode;
+
 	let currentIndex = 0;
 	let frontHide = false;
 	let backHide = true;
@@ -19,13 +22,36 @@
 		// Implement your logic to add a new flashcard
 	}
 	let flashcards = [
-		{ term: 'Term 1', definition: 'Definition 1' },
-		{ term: 'Term 2', definition: 'Definition 2' },
-		{ term: 'Term 3', definition: 'Definition 3' }
+		{ card_id: 'Term 1', word: 'word', definition: 'Definition 1' },
+		{ card_id: 'asdfTerm 1', word: 'dasfafword', definition: 'Dasdfefinition 1' },
+		{ card_id: 'Teradfm 1', word: 'wordasdf', definition: 'Definitadsfion 1' }
 		// Add more flashcards as needed
 	];
 
-	function fetchCards() {}
+	async function fetchCards() {
+		if (user == null || set_id == '') {
+			return;
+		}
+		const queryParams = {
+			token: user.idToken
+		};
+		const queryString = new URLSearchParams(queryParams).toString();
+		let url = APIUrl + '/v1/sets/' + set_id + '/cards' + '?' + queryString;
+		let res = await fetch(url);
+		if (res.ok) {
+			let temp = await res.json();
+			if (temp.length != 0) {
+				temp = temp.map((card) => {
+					for (let key in card) {
+						return card[key];
+					}
+				});
+				flashcards = temp;
+			}
+		} else {
+			alert('Cant make request');
+		}
+	}
 	function goToNextCard() {
 		currentIndex = (currentIndex + 1) % flashcards.length;
 		frontHide = false;
@@ -52,7 +78,7 @@
 		<div class="flashcard-container">
 			<div class="flashcard" on:click={toggleFlip}>
 				<div class="front" class:hide={frontHide}>
-					<h2>{flashcards[currentIndex].term}</h2>
+					<h2>{flashcards[currentIndex].word}</h2>
 				</div>
 				<div class="back" class:hide={backHide}>
 					<p>{flashcards[currentIndex].definition}</p>

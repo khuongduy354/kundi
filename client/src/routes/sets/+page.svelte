@@ -4,6 +4,9 @@
 	import { onMount } from 'svelte';
 	import { APIUrl, UserState } from '../../store.js';
 
+	export let mode;
+	export let set_id;
+
 	let decks = [{ set_name: 'deck1', set_id: 'asdasd' }];
 	function addDeck() {}
 	let user = null;
@@ -35,7 +38,13 @@
 				<button on:click={addDeck}>Add Deck</button>
 			</div>
 			{#each decks as deck}
-				<button class="deck">
+				<button
+					on:click={() => {
+						set_id = deck.set_id;
+						mode = 'Home';
+					}}
+					class="deck"
+				>
 					<h2>{deck.set_name}</h2>
 				</button>
 			{/each}

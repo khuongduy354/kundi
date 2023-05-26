@@ -4,6 +4,7 @@
 	import Login from './login/+page.svelte';
 	import Sets from './sets/+page.svelte';
 	export var mode = 'Home';
+	let set_id = '';
 </script>
 
 <svelte:head>
@@ -12,7 +13,7 @@
 </svelte:head>
 
 {#if mode == 'Slideshow' || mode == 'Home'}
-	<Slideshow bind:mode />
+	<Slideshow bind:set_id bind:mode />
 {/if}
 
 {#if mode == 'Edit'}
@@ -22,5 +23,5 @@
 	<Login />
 {/if}
 {#if mode == 'Sets'}
-	<Sets />
+	<Sets bind:set_id bind:mode />
 {/if}
