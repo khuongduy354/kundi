@@ -3,8 +3,10 @@
 	export let set_name = '';
 	export let flashcards = [{ word: 'word', definition: 'Definition 1' }];
 	export let set_id = '';
+	import { parseImport, parseExport } from '../../helpers/parse';
 	import { UserState, APIUrl } from '../../store';
 
+	let importValue = '';
 	let temp_flcards = [...flashcards];
 	let user = null;
 	let deckTitle = '';
@@ -17,6 +19,18 @@
 
 	UserState.subscribe((value) => (user = value));
 
+	function exportCards() {
+		let result = parseExport(temp_flcards, ' ', '\n');
+		let blob = new Blob([result], { type: 'text/plain' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = 'export.txt';
+		link.click();
+	}
+	function importCards() {
+		temp_flcards = [...temp_flcards, ...parseImport(importValue, ' ', '\n')];
+		console.log(temp_flcards);
+	}
 	$: addFlashcard = (new_card) => {
 		temp_flcards.push(new_card);
 		temp_flcards = temp_flcards;
@@ -82,30 +96,33 @@
       </ul>
     </div>
   </div> -->
-
+	<p>Import areas</p>
+	<textarea class="import" bind:value={importValue} />
 	<div class="button-container">
-		<button class="button">Import</button>
+		<button on:click={importCards} class="button">Import</button>
 		<span />
-		<button class="button">Export</button>
+		<button on:click={exportCards} class="button">Export</button>
 	</div>
 	{#each temp_flcards as flashcard, idx}
-		<div class="form-row">
-			<input type="text" placeholder="Term" class="input-field" value={flashcard.word} />
-			<input
-				type="text"
-				placeholder="Definition"
-				class="input-field"
-				value={flashcard.definition}
-			/>
-			<button
-				on:click={() => {
-					temp_flcards.splice(idx, 1);
-					temp_flcards = temp_flcards;
-				}}
-				class="button"
-				type="button">Delete Row</button
-			>
-		</div>
+		{#if flashcard.definition != '' && flashcard.word != ''}
+			<div class="form-row">
+				<input type="text" placeholder="Term" class="input-field" value={flashcard.word} />
+				<input
+					type="text"
+					placeholder="Definition"
+					class="input-field"
+					value={flashcard.definition}
+				/>
+				<button
+					on:click={() => {
+						temp_flcards.splice(idx, 1);
+						temp_flcards = temp_flcards;
+					}}
+					class="button"
+					type="button">Delete Row</button
+				>
+			</div>
+		{/if}
 	{/each}
 	<form>
 		<div class="form-row">
@@ -143,6 +160,14 @@
 </main>
 
 <style>
+	.import {
+		width: 100%;
+		height: 200px;
+		padding: 8px;
+		font-size: 14px;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+	}
 	main {
 		display: flex;
 		flex-direction: column;
