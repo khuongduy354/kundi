@@ -22,6 +22,11 @@ Token = Annotated[str, oauth2_scheme]
 # TODO: dataclasses here
 
 
+class CreateCardsPayload(BaseModel):
+    word: str
+    definition: str
+
+
 class CreateSetPayload(BaseModel):
     set_name: str
 
@@ -135,18 +140,28 @@ def db_update_cards(email: str, set: str, cards: list[Card]):
         raise HTTPException(status_code=406)
 
 
-def db_create_cards(email: str, set: str, cards: list[Card]):
+async def db_create_cards(email: str, set: str, cards: list[CreateCardsPayload]):
     try:
+        docs_ref = db.collection("users").document(email).collection(
+            "sets").document(set).collection("cards").stream()
+        for doc in docs_ref:
+            batch.delete(doc.reference)
+        batch.commit()
+
         for card in cards:
+            print("up here")
+            card_id = str(uuid.uuid4())
             card_ref = db.collection("users").document(
 
-                email).collection("sets").document(set).collection("cards").document(card.card_id)
+                email).collection("sets").document(set).collection("cards").document(card_id)
 
-            new_card = {card.card_id: {"word": card.word,
-                                       "definition": card.definition}}
+            new_card = {card_id: {"word": card.word,
+                                  "definition": card.definition}}
             batch.set(card_ref, new_card)
+            print("here")
         batch.commit()
-    except:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=406)
 
 
@@ -225,19 +240,17 @@ def create_set(user: Annotated[dict, Depends(parse_token)], set_payload: CreateS
 
 
 @ app.get("/v1/sets/{set_id}/cards")
-def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str) -> List[Card]:
+def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str):
     if user == None:
         raise HTTPException(status_code=401)
     return db_get_cards(user["email"], set_id)
 
 
 @ app.post("/v1/sets/{set_id}/cards")
-def create_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[Card]):
+async def create_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[CreateCardsPayload]):
     if user == None:
         raise HTTPException(status_code=401)
-    for card in cards:
-        card.card_id = str(uuid.uuid4())
-    db_create_cards(user["email"], set_id, cards)
+    await db_create_cards(user["email"], set_id, cards)
 
 
 @ app.put("/v1/sets/{set_id}/cards")
