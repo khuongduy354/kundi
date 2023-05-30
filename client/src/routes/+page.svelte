@@ -6,11 +6,7 @@
 	export var mode = 'Home';
 	let set_id = '';
 	let set_name = '';
-	let flashcards = [
-		{ card_id: 'Term 1', word: 'word', definition: 'Definition 1' },
-		{ card_id: 'asdfTerm 1', word: 'dasfafword', definition: 'Dasdfefinition 1' },
-		{ card_id: 'Teradfm 1', word: 'wordasdf', definition: 'Definitadsfion 1' }
-	];
+	let flashcards = [{ card_id: '', word: '', definition: '' }];
 </script>
 
 <svelte:head>
@@ -19,11 +15,11 @@
 </svelte:head>
 
 {#if mode == 'Slideshow' || mode == 'Home'}
-	<Slideshow bind:set_id bind:mode bind:flashcards />
+	<Slideshow bind:set_id bind:mode bind:flashcards bind:set_name />
 {/if}
 
 {#if mode == 'Edit'}
-	<Edit bind:mode bind:set_name bind:flashcards />
+	<Edit bind:mode bind:set_name bind:flashcards bind:set_id />
 {/if}
 {#if mode == 'Login'}
 	<Login />

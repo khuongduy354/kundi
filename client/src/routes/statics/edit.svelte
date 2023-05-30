@@ -1,16 +1,53 @@
 <script>
 	export let mode;
 	export let set_name = '';
-	export let flashcards = [{ card_id: 'Term 1', word: 'word', definition: 'Definition 1' }];
+	export let flashcards = [{ word: 'word', definition: 'Definition 1' }];
+	export let set_id = '';
+	import { UserState, APIUrl } from '../../store';
 
+	let temp_flcards = [...flashcards];
+	let user = null;
 	let deckTitle = '';
 	let deckDescription = '';
 	let terms = [];
 	let definitions = [];
 
+	let term = '';
+	let defi = '';
+
+	UserState.subscribe((value) => (user = value));
+
+	$: addFlashcard = (new_card) => {
+		temp_flcards.push(new_card);
+		temp_flcards = temp_flcards;
+	};
+
 	// Function to handle form submission
-	function handleSubmit() {
-		// Add your logic here to handle the form submission
+	async function handleSubmit() {
+		if (user == null) {
+			return;
+		}
+		const queryParams = {
+			token: user.idToken
+		};
+		const queryString = new URLSearchParams(queryParams).toString();
+		let url = APIUrl + '/v1/sets/' + set_id + '/cards' + '?' + queryString;
+		console.log(url);
+		let body = JSON.stringify(temp_flcards);
+		console.log(body);
+		let res = await fetch(url, {
+			method: 'POST',
+			body,
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (res.ok) {
+			alert('cards created');
+			flashcards = temp_flcards;
+		} else {
+			alert('Cant make request');
+		}
 	}
 </script>
 
@@ -51,7 +88,7 @@
 		<span />
 		<button class="button">Export</button>
 	</div>
-	{#each flashcards as flashcard}
+	{#each temp_flcards as flashcard, idx}
 		<div class="form-row">
 			<input type="text" placeholder="Term" class="input-field" value={flashcard.word} />
 			<input
@@ -60,17 +97,42 @@
 				class="input-field"
 				value={flashcard.definition}
 			/>
-			<button class="button">Delete Row</button>
+			<button
+				on:click={() => {
+					temp_flcards.splice(idx, 1);
+					temp_flcards = temp_flcards;
+				}}
+				class="button"
+				type="button">Delete Row</button
+			>
 		</div>
 	{/each}
-	<form on:submit|preventDefault={handleSubmit}>
+	<form>
 		<div class="form-row">
-			<input type="text" placeholder="Term" class="input-field" />
-			<input type="text" placeholder="Definition" class="input-field" />
-			<button class="button">Add Row</button>
-			<button class="button">Delete Row</button>
+			<input bind:value={term} type="text" placeholder="Term" class="input-field" />
+			<input bind:value={defi} type="text" placeholder="Definition" class="input-field" />
+			<button
+				on:click={() => {
+					if (term != '' || defi != '') {
+						let new_word = { word: term, definition: defi };
+						addFlashcard(new_word);
+						term = '';
+						defi = '';
+					}
+				}}
+				class="button"
+				type="button">Add Row</button
+			>
+			<button
+				on:click={() => {
+					term = '';
+					defi = '';
+				}}
+				class="button"
+				type="button">Delete Row</button
+			>
 		</div>
-		<button class="button">Submit</button>
+		<button on:click={handleSubmit} class="button">Submit</button>
 	</form>
 	<button
 		on:click={() => {

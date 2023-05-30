@@ -7,6 +7,7 @@
 	import { UserState, APIUrl } from '../../store.js';
 	export let mode;
 	export let set_id = '';
+	export let set_name = 'Flashcard';
 
 	let user = null;
 	onMount(fetchCards);
@@ -74,7 +75,8 @@
 <main>
 	<h1 class="KundiFl">Kundi Flashcard</h1>
 	{#if user != null}
-		<p>{title}</p>
+		<p>{set_name}</p>
+		<div>{currentIndex + 1} / {flashcards.length}</div>
 		<div class="flashcard-container">
 			<div class="flashcard" on:click={toggleFlip}>
 				<div class="front" class:hide={frontHide}>
