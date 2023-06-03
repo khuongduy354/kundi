@@ -38,19 +38,21 @@ class FirebaseUser(BaseModel):
     email: str
 
 
-class ReviewedCard(BaseModel):
-    card_id: str
-    word: str
-    definition: str
-    # session_id:int
-    review_counts: int
-    review_due: datetime
+# class ReviewedCard(BaseModel):
+#     card_id: str
+#     word: str
+#     definition: str
+#     # session_id:int
+#     review_counts: int
+#     review_due: datetime
 
 
 class Card(BaseModel):
     card_id: str
     word: str
     definition: str
+    review_counts: int = 0
+    review_due: datetime = datetime.now()
 
 
 # class CreateCardsPayload(BaseModel):
@@ -126,12 +128,14 @@ def get_set_doc(email: str, set: str):
     return db.collection("users").document(email).collection("sets").document(set)
 
 
-def db_get_cards(email: str, set: str):
+def db_get_cards(email: str, set: str, review: bool = False):
     try:
         docs = get_set_doc(email, set).collection("cards").stream()
         result: list[Card] = []
         for doc in docs:
             result.append(doc.to_dict())
+        if review:
+            result = [x for x in result if x.review_due < datetime.now()]
         return result
     except:
         raise HTTPException(status_code=406)
@@ -247,10 +251,10 @@ def create_set(user: Annotated[dict, Depends(parse_token)], set_payload: CreateS
 
 
 @ app.get("/v1/sets/{set_id}/cards")
-def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str):
+def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, review: bool = False):
     if user == None:
         raise HTTPException(status_code=401)
-    return db_get_cards(user["email"], set_id)
+    return db_get_cards(user["email"], set_id, review)
 
 
 @ app.post("/v1/sets/{set_id}/cards")
@@ -283,6 +287,15 @@ def delete_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards
 
 
 @app.post("v1/sets/{set_id}/cards/{card_id}/review")
-def review_cards(set_id: str, user: Annotated[dict, Depends(parse_token)], duration: int = 3600, moveRight: bool = True):
+def review_cards(card_id: str, set_id: str, user: Annotated[dict, Depends(parse_token)], duration: int = 3600, moveRight: bool = True):
+    card_ref = get_set_doc(user["email"], set_id).collection(
+        "cards").document(card_id)
 
+    review_date = datetime.now() + timedelta(seconds=duration)
+    if not moveRight:
+        review_date = datetime.now() - timedelta(seconds=duration)
+
+    update_info = {"review_counts": firestore.firestore.Increment(
+        1), "review_date": review_date}
+    card_ref.update(update_info)
     pass

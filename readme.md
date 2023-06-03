@@ -1,3 +1,10 @@
+# todo 
+- fixed the card, review and edit: when review, edit will refresh the whole deck, lost review records. Solutions: 
+1. Fix the edit: frontend now contain ID, and not just replace all blindly, but edit. 
+2. Review session: clone the set of cards reviewed, into session class, even if it is edited, deleted, the review 
+cards still there.  
+=> option 1 make more sense.
+
 # Stack choosing
 Nodejs has non blocking model, while Flask has bloking one 
 Js ecosystem sucks   
