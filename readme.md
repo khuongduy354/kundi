@@ -3,7 +3,7 @@
 1. Fix the edit: frontend now contain ID, and not just replace all blindly, but edit. 
 2. Review session: clone the set of cards reviewed, into session class, even if it is edited, deleted, the review 
 cards still there.  
-=> option 1 make more sense.
+=> option 1 make more sense. 
 
 # Stack choosing
 Nodejs has non blocking model, while Flask has bloking one 
@@ -28,7 +28,8 @@ Django
 - Database (decks and cards) 
 - Revision system for users  
 
-# Learned 
+# Learned  
+- write test case for api beforehand: when add a new endpoint, run test for all previous endpoints, woosh, it works.
 - parsing strings: 
 https://pythonspeed.com/articles/faster-text-processing/ 
 python easier but rust faster 

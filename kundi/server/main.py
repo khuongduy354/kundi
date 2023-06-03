@@ -53,6 +53,7 @@ class Card(BaseModel):
     definition: str
     review_counts: int = 0
     review_due: datetime = datetime.now()
+    box_id: int = 0
 
 
 # class CreateCardsPayload(BaseModel):
@@ -283,19 +284,22 @@ def delete_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards
 # next_review: Date()
 
 # duration=minutes in querystring
-# moveRight = boolean
+# move_dir = right, left, none
 
 
 @app.post("v1/sets/{set_id}/cards/{card_id}/review")
-def review_cards(card_id: str, set_id: str, user: Annotated[dict, Depends(parse_token)], duration: int = 3600, moveRight: bool = True):
+def review_cards(card_id: str, set_id: str, user: Annotated[dict, Depends(parse_token)], duration: int = 3600, move_dir: str = "right"):
     card_ref = get_set_doc(user["email"], set_id).collection(
         "cards").document(card_id)
 
     review_date = datetime.now() + timedelta(seconds=duration)
-    if not moveRight:
-        review_date = datetime.now() - timedelta(seconds=duration)
+    box_id_in = 1
+    if move_dir == "left":
+        box_id_in = -1
+    if move_dir == "none":
+        box_id_in = 0
 
     update_info = {"review_counts": firestore.firestore.Increment(
-        1), "review_date": review_date}
+        1), "review_date": review_date, "box_id": firestore.firestore.Increment(box_id_in)}
     card_ref.update(update_info)
     pass
