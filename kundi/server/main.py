@@ -1,4 +1,5 @@
 from typing import Callable, Union, Annotated, List
+from datetime import datetime, timedelta
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 import uuid
@@ -35,6 +36,15 @@ class FirebaseUser(BaseModel):
     name: str
     user_id: str
     email: str
+
+
+class ReviewedCard(BaseModel):
+    card_id: str
+    word: str
+    definition: str
+    # session_id:int
+    review_counts: int
+    review_due: datetime
 
 
 class Card(BaseModel):
@@ -112,10 +122,13 @@ def signup_user(payload: UserAuthPayload):
 # Cards
 
 
+def get_set_doc(email: str, set: str):
+    return db.collection("users").document(email).collection("sets").document(set)
+
+
 def db_get_cards(email: str, set: str):
     try:
-        docs = db.collection("users").document(
-            email).collection("sets").document(set).collection("cards").stream()
+        docs = get_set_doc(email, set).collection("cards").stream()
         result: list[Card] = []
         for doc in docs:
             result.append(doc.to_dict())
@@ -127,9 +140,8 @@ def db_get_cards(email: str, set: str):
 def db_update_cards(email: str, set: str, cards: list[Card]):
     try:
         for card in cards:
-            card_ref = db.collection("users").document(
-
-                email).collection("sets").document(set).collection("cards").document(card.card_id)
+            card_ref = get_set_doc(email, set).collection(
+                "cards").document(card.card_id)
             snapshot = card_ref.get()
             if snapshot.exists:
                 new_card = {card.card_id: {"word": card.word,
@@ -142,8 +154,7 @@ def db_update_cards(email: str, set: str, cards: list[Card]):
 
 async def db_create_cards(email: str, set: str, cards: list[CreateCardsPayload]):
     try:
-        docs_ref = db.collection("users").document(email).collection(
-            "sets").document(set).collection("cards").stream()
+        docs_ref = get_set_doc(email, set).collection("cards").stream()
         for doc in docs_ref:
             batch.delete(doc.reference)
         batch.commit()
@@ -168,9 +179,8 @@ async def db_create_cards(email: str, set: str, cards: list[CreateCardsPayload])
 def db_delete_cards(email: str, set: str, cards: list[Card]):
     try:
         for card in cards:
-            card_ref = db.collection("users").document(
-
-                email).collection("sets").document(set).collection("cards").document(card.card_id)
+            card_ref = get_set_doc(email, set).collection(
+                "cards").document(card.card_id)
             snapshot = card_ref.get()
             if snapshot.exists:
                 batch.delete(card_ref)
@@ -193,24 +203,6 @@ class SetResponse(BaseModel):
     set_name: str
     set_id: str
 
-# abit redundant, but this check for uuid duplicate
-
-
-def db_create_set(email: str, set_name: str):
-    try:
-        set_id = str(uuid.uuid4())
-        set_ref = db.collection("users").document(
-            email).collection("sets").document(set_id)
-        set_ref.set({'set_name': set_name})
-        result = set_ref.get().to_dict()
-        result["set_id"] = set_id
-        return SetResponse(**result)
-    except:
-        raise HTTPException(406)
-
-
-# ROUTE HANDLERS
-
 
 def db_get_all_sets(email: str):
     try:
@@ -224,6 +216,21 @@ def db_get_all_sets(email: str):
         return result
     except:
         raise HTTPException(406)
+
+
+def db_create_set(email: str, set_name: str):
+    try:
+        set_id = str(uuid.uuid4())
+        set_ref = get_set_doc(email, set_id)
+        set_ref.set({'set_name': set_name})
+        result = set_ref.get().to_dict()
+        result["set_id"] = set_id
+        return SetResponse(**result)
+    except:
+        raise HTTPException(406)
+
+
+# ROUTE HANDLERS
 
 
 @app.get("/v1/sets")
@@ -265,3 +272,17 @@ def delete_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards
     if user == None:
         raise HTTPException(status_code=401)
     db_delete_cards(user["email"], set_id, cards)
+
+# REVISION system
+# Cards extra attribute:
+# review_counts:
+# next_review: Date()
+
+# duration=minutes in querystring
+# moveRight = boolean
+
+
+@app.post("v1/sets/{set_id}/cards/{card_id}/review")
+def review_cards(set_id: str, user: Annotated[dict, Depends(parse_token)], duration: int = 3600, moveRight: bool = True):
+
+    pass

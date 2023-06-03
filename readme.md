@@ -69,6 +69,10 @@ usually response can return basemodel or dict
 these can be converted back and forth  https://fastapi.tiangolo.com/tutorial/extra-models/
 having typing is extremely beneficial in coding and auto docs
 
+### frontend
+- Frontend is a whole messed, update states and stuffs, let not touch Frontend again :)   
+- flashcards = flashcards :) for rerender 
+
 # Design decisions 
 Review sys: https://en.wikipedia.org/wiki/Leitner_system, overkill :) 
 -> use a 5 box, simpler method 
@@ -79,4 +83,5 @@ wrong thrice -> return box1
 
 Firebase because sets, cards are simple  
 
-
+Review sys: for every multiple choices, make a request, that how Quizlet does. It gonna be a bit expensive, otherwise 
+user refresh page gonna lose all progress
