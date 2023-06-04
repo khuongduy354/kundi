@@ -23,9 +23,13 @@ Token = Annotated[str, oauth2_scheme]
 # TODO: dataclasses here
 
 
-class CreateCardsPayload(BaseModel):
+class CreateCardPayload(BaseModel):
     word: str
     definition: str
+
+
+class CreateCardsPayload(BaseModel):
+    cardList: List[CreateCardPayload]
 
 
 class CreateSetPayload(BaseModel):
@@ -52,7 +56,7 @@ class Card(BaseModel):
     word: str
     definition: str
     review_counts: int = 0
-    review_due: datetime = datetime.now()
+    review_due: str
     box_id: int = 0
 
 
@@ -134,9 +138,12 @@ def db_get_cards(email: str, set: str, review: bool = False):
         docs = get_set_doc(email, set).collection("cards").stream()
         result: list[Card] = []
         for doc in docs:
-            result.append(doc.to_dict())
+            result.append(Card(**doc.to_dict()))
         if review:
-            result = [x for x in result if x.review_due < datetime.now()]
+         # [{"review_due":""}]
+            result = [x for x in result if x.review_due <=
+                      datetime.now().isoformat()]
+
         return result
     except:
         raise HTTPException(status_code=406)
@@ -157,7 +164,7 @@ def db_update_cards(email: str, set: str, cards: list[Card]):
         raise HTTPException(status_code=406)
 
 
-async def db_create_cards(email: str, set: str, cards: list[CreateCardsPayload]):
+async def db_create_cards(email: str, set: str, cards: List[CreateCardPayload]):
     try:
         docs_ref = get_set_doc(email, set).collection("cards").stream()
         for doc in docs_ref:
@@ -170,11 +177,10 @@ async def db_create_cards(email: str, set: str, cards: list[CreateCardsPayload])
             card_ref = db.collection("users").document(
 
                 email).collection("sets").document(set).collection("cards").document(card_id)
+            new_card = Card(card_id=card_id, word=card.word,
+                            definition=card.definition, review_due=datetime.now().isoformat())
 
-            new_card = {card_id: {"word": card.word,
-                                  "definition": card.definition}}
-            batch.set(card_ref, new_card)
-            print("here")
+            batch.set(card_ref, new_card.dict())
         batch.commit()
     except Exception as e:
         print(e)
@@ -259,10 +265,10 @@ def get_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, review: 
 
 
 @ app.post("/v1/sets/{set_id}/cards")
-async def create_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: List[CreateCardsPayload]):
+async def create_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards: CreateCardsPayload):
     if user == None:
         raise HTTPException(status_code=401)
-    await db_create_cards(user["email"], set_id, cards)
+    await db_create_cards(user["email"], set_id, cards.cardList)
 
 
 @ app.put("/v1/sets/{set_id}/cards")
@@ -287,12 +293,13 @@ def delete_cards(user: Annotated[dict, Depends(parse_token)], set_id: str, cards
 # move_dir = right, left, none
 
 
-@app.post("v1/sets/{set_id}/cards/{card_id}/review")
-def review_cards(card_id: str, set_id: str, user: Annotated[dict, Depends(parse_token)], duration: int = 3600, move_dir: str = "right"):
+@app.post("/v1/sets/{set_id}/cards/{card_id}/review")
+def review_cards(card_id: str, set_id: str, user: Annotated[dict, Depends(parse_token)], duration: int = 10, move_dir: str = "right"):
     card_ref = get_set_doc(user["email"], set_id).collection(
         "cards").document(card_id)
 
-    review_date = datetime.now() + timedelta(seconds=duration)
+    review_due = datetime.now() + timedelta(minutes=duration)
+    review_due = review_due.isoformat()
     box_id_in = 1
     if move_dir == "left":
         box_id_in = -1
@@ -300,6 +307,6 @@ def review_cards(card_id: str, set_id: str, user: Annotated[dict, Depends(parse_
         box_id_in = 0
 
     update_info = {"review_counts": firestore.firestore.Increment(
-        1), "review_date": review_date, "box_id": firestore.firestore.Increment(box_id_in)}
+        1), "review_due": review_due, "box_id": firestore.firestore.Increment(box_id_in)}
     card_ref.update(update_info)
     pass

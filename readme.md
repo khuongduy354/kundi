@@ -1,4 +1,5 @@
-# todo 
+# todo  
+- typing for everything: convert to Card, and dict when interact with firebase. 
 - fixed the card, review and edit: when review, edit will refresh the whole deck, lost review records. Solutions: 
 1. Fix the edit: frontend now contain ID, and not just replace all blindly, but edit. 
 2. Review session: clone the set of cards reviewed, into session class, even if it is edited, deleted, the review 
