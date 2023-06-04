@@ -1,6 +1,7 @@
 runserver: 
 	uvicorn kundi.server.main:app --reload 
-
+testendpoint: 
+	pytest ./tests/test_endpoints.py
 	
 API_KEY := AIzaSyDPoYA3017g0HwB1m0ZUUAxLKrbInm1fRg
 EMAIL := asdf2@gmail.com
