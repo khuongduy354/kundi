@@ -29,9 +29,8 @@
 	}
 	function importCards() {
 		temp_flcards = [...temp_flcards, ...parseImport(importValue, ' ', '\n')];
-		console.log(temp_flcards);
 	}
-	$: addFlashcard = (new_card) => {
+	$: addFlashcard = (new_card) => { 
 		temp_flcards.push(new_card);
 		temp_flcards = temp_flcards;
 	};
@@ -39,15 +38,19 @@
 	// Function to handle form submission
 	async function handleSubmit() {
 		if (user == null) {
+      alert("please login")
 			return;
 		}
+    if (set_id==''){
+      alert("please select a deck")
+      return;
+    }
 		const queryParams = {
 			token: user.idToken
 		};
 		const queryString = new URLSearchParams(queryParams).toString();
 		let url = APIUrl + '/v1/sets/' + set_id + '/cards' + '?' + queryString;
-		console.log(url);
-		let body = JSON.stringify(temp_flcards);
+		let body = JSON.stringify({cardList: temp_flcards});
 		console.log(body);
 		let res = await fetch(url, {
 			method: 'POST',

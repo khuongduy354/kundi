@@ -41,14 +41,9 @@
 		let res = await fetch(url);
 		if (res.ok) {
 			let temp = await res.json();
-			if (temp.length != 0) {
-				temp = temp.map((card) => {
-					for (let key in card) {
-						return card[key];
-					}
-				});
-				flashcards = temp;
-			}
+				flashcards = temp; 
+        console.log(flashcards)
+			
 		} else {
 			alert('Cant make request');
 		}
